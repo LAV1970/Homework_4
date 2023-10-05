@@ -1,84 +1,81 @@
 import re
 
+# Создаем пустой словарь для хранения контактов
 phonebook = {}
 
 
+# Создаем декоратор input_error для обработки ошибок
 def input_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            return "Enter user name"
+            return "Введите имя пользователя"
         except ValueError:
-            return "Give me name and phone please"
+            return "Укажите имя и номер телефона, пожалуйста"
         except IndexError:
-            return "Invalid input. Format: command name phone"
+            return "Неверный формат ввода. Формат: команда имя номер"
 
     return wrapper
 
 
-def handle_command(command_name):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            user_input = input("Enter a command: ").strip().lower()
-
-            if user_input == command_name:
-                return func(*args, **kwargs)
-            else:
-                return None  # Возвращаем None, если команда не соответствует декорированной функции
-
-        return wrapper
-
-    return decorator
-
-
+# Функция-обработчик для команды "hello"
 @input_error
 def hello():
-    return "How can I help you?"
+    return "Как я могу вам помочь?"
 
 
+# Функция-обработчик для команды "add"
 @input_error
 def add_contact(name, phone):
+    # Добавляем контакт в телефонную книгу
     phonebook[name] = phone
-    return f"Contact {name} with phone number {phone} added."
+    return f"Контакт {name} с номером телефона {phone} добавлен."
 
 
+# Функция-обработчик для команды "change"
 @input_error
 def change_contact(name, phone):
     if name in phonebook:
+        # Обновляем номер телефона существующего контакта
         phonebook[name] = phone
-        return f"Phone number for {name} updated."
+        return f"Номер телефона для {name} обновлен."
     else:
-        return f"Contact {name} not found."
+        return f"Контакт {name} не найден."
 
 
+# Функция-обработчик для команды "phone"
 @input_error
 def find_phone(name):
     if name in phonebook:
-        return f"Phone number for {name}: {phonebook[name]}"
+        # Находим номер телефона для указанного контакта
+        return f"Номер телефона для {name}: {phonebook[name]}"
     else:
-        return f"Contact {name} not found."
+        return f"Контакт {name} не найден."
 
 
+# Функция-обработчик для команды "show all"
 @input_error
 def show_all():
     if phonebook:
-        result = "Contacts:\n"
+        # Выводим список всех контактов
+        result = "Контакты:\n"
         for name, phone in phonebook.items():
             result += f"{name}: {phone}\n"
         return result.strip()
     else:
-        return "Phonebook is empty."
+        return "Телефонная книга пуста."
 
 
+# Главная функция, в которой происходит взаимодействие с пользователем
 def main():
-    print("Bot Assistant. Type 'good bye', 'close', or 'exit' to exit.")
+    print("Бот-ассистент. Введите 'good bye', 'close' или 'exit' для выхода.")
 
     while True:
-        user_input = input("Enter a command: ").strip().lower()
+        user_input = input("Введите команду: ").strip().lower()
 
         if user_input in ("good bye", "close", "exit"):
-            print("Good bye!")
+            print("До свидания!")
             break
         else:
             handler = None
@@ -90,14 +87,14 @@ def main():
                     name, phone = contact_info.split()
                     handler = handle_command("add")(add_contact)
                 except ValueError:
-                    print("Give me name and phone please")
+                    print("Укажите имя и номер телефона, пожалуйста")
             elif user_input.startswith("change "):
                 _, contact_info = user_input.split(" ", 1)
                 try:
                     name, phone = contact_info.split()
                     handler = handle_command("change")(change_contact)
                 except ValueError:
-                    print("Give me name and phone please")
+                    print("Укажите имя и номер телефона, пожалуйста")
             elif user_input.startswith("phone "):
                 _, name = user_input.split(" ", 1)
                 handler = handle_command("phone")(find_phone)
@@ -110,7 +107,7 @@ def main():
                     print(result)
                 else:
                     print(
-                        "Invalid command. Type 'good bye', 'close', 'exit', 'hello', or 'add ...' to interact with the bot."
+                        "Неверная команда. Введите 'good bye', 'close', 'exit', 'hello' или 'add ...' для взаимодействия с ботом."
                     )
 
 
