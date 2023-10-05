@@ -1,58 +1,92 @@
+def input_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            return "Enter user name"
+        except ValueError:
+            return "Give me name and phone please"
+        except IndexError:
+            return "Invalid input. Format: command name phone"
+
+    return wrapper
+
+
 phonebook = {}
 
 
-def add_contact():
-    name = input("Введіть ім'я контакту: ")
-    phone = input("Введіть номер телефону: ")
+@input_error
+def hello():
+    return "How can I help you?"
+
+
+@input_error
+def add_contact(name, phone):
     phonebook[name] = phone
-    print(f"Контакт {name} з номером {phone} додано до телефонної книги.")
+    return f"Contact {name} with phone number {phone} added."
 
 
-def find_contact():
-    name = input("Введіть ім'я контакту, щоб знайти номер телефону: ")
+@input_error
+def change_contact(name, phone):
     if name in phonebook:
-        phone = phonebook[name]
-        print(f"Номер телефону {name}: {phone}")
+        phonebook[name] = phone
+        return f"Phone number for {name} updated."
     else:
-        print(f"Контакт з іменем {name} не знайдено.")
+        return f"Contact {name} not found."
 
 
-def update_contact():
-    name = input("Введіть ім'я контакту, якого ви хочете оновити: ")
+@input_error
+def find_phone(name):
     if name in phonebook:
-        new_phone = input(f"Введіть новий номер телефону для {name}: ")
-        phonebook[name] = new_phone
-        print(f"Номер телефону для {name} оновлено.")
+        return f"Phone number for {name}: {phonebook[name]}"
     else:
-        print(f"Контакт з іменем {name} не знайдено.")
+        return f"Contact {name} not found."
 
 
-def list_contacts():
-    print("Список контактів:")
-    for name, phone in phonebook.items():
-        print(f"{name}: {phone}")
-
-
-while True:
-    print("\nМеню:")
-    print("1. Додати контакт")
-    print("2. Знайти номер телефону")
-    print("3. Оновити контакт")
-    print("4. Вивести список контактів")
-    print("5. Вийти")
-
-    choice = input("Оберіть опцію: ")
-
-    if choice == "1":
-        add_contact()
-    elif choice == "2":
-        find_contact()
-    elif choice == "3":
-        update_contact()
-    elif choice == "4":
-        list_contacts()
-    elif choice == "5":
-        print("До побачення!")
-        break
+@input_error
+def show_all():
+    if phonebook:
+        result = "Contacts:\n"
+        for name, phone in phonebook.items():
+            result += f"{name}: {phone}\n"
+        return result.strip()
     else:
-        print("Невірний вибір. Оберіть опцію з меню.")
+        return "Phonebook is empty."
+
+
+def main():
+    print("Bot Assistant. Type 'good bye', 'close', or 'exit' to exit.")
+
+    while True:
+        user_input = input("Enter a command: ").strip().lower()
+
+        if user_input in ("good bye", "close", "exit"):
+            print("Good bye!")
+            break
+        elif user_input == "hello":
+            print(hello())
+        elif user_input.startswith("add "):
+            _, contact_info = user_input.split(" ", 1)
+            try:
+                name, phone = contact_info.split()
+                print(add_contact(name, phone))
+            except ValueError:
+                print("Give me name and phone please")
+        elif user_input.startswith("change "):
+            _, contact_info = user_input.split(" ", 1)
+            try:
+                name, phone = contact_info.split()
+                print(change_contact(name, phone))
+            except ValueError:
+                print("Give me name and phone please")
+        elif user_input.startswith("phone "):
+            _, name = user_input.split(" ", 1)
+            print(find_phone(name))
+        elif user_input == "show all":
+            print(show_all())
+        else:
+            print("Invalid command. Type 'good bye', 'close', or 'exit' to exit.")
+
+
+if __name__ == "__main__":
+    main()
