@@ -15,56 +15,47 @@ def input_error(func):
             return "Укажите имя и номер телефона, пожалуйста"
         except IndexError:
             return "Неверный формат ввода. Формат: команда имя номер"
+        except InvalidPhoneNumberError:
+            return "Неверный формат номера телефона. Используйте формат +380(xx)xxx-xx-xx или +380(xx)xxx-xxx."
 
     return wrapper
 
 
-# Функция-обработчик для команды "hello"
-@input_error
-def hello():
-    return "Как я могу вам помочь?"
+# Собственное исключение для неверного формата номера телефона
+class InvalidPhoneNumberError(Exception):
+    pass
+
+
+# Функция для проверки формата номера телефона
+def validate_phone(phone):
+    pattern = r"^\+380\(\d{2}\)\d{3}-(?:\d-\d{3}|\d{2}-\d{2})$"
+    if not re.match(pattern, phone):
+        raise InvalidPhoneNumberError()
 
 
 # Функция-обработчик для команды "add"
 @input_error
 def add_contact(name, phone):
-    # Добавляем контакт в телефонную книгу
-    phonebook[name] = phone
-    return f"Контакт {name} с номером телефона {phone} добавлен."
+    try:
+        validate_phone(phone)
+        phonebook[name] = phone
+        return f"Контакт {name} с номером телефона {phone} добавлен."
+    except InvalidPhoneNumberError:
+        raise ValueError()
 
 
 # Функция-обработчик для команды "change"
 @input_error
 def change_contact(name, phone):
     if name in phonebook:
-        # Обновляем номер телефона существующего контакта
-        phonebook[name] = phone
-        return f"Номер телефона для {name} обновлен."
+        try:
+            validate_phone(phone)
+            phonebook[name] = phone
+            return f"Номер телефона для {name} обновлен."
+        except InvalidPhoneNumberError:
+            raise ValueError()
     else:
         return f"Контакт {name} не найден."
-
-
-# Функция-обработчик для команды "phone"
-@input_error
-def find_phone(name):
-    if name in phonebook:
-        # Находим номер телефона для указанного контакта
-        return f"Номер телефона для {name}: {phonebook[name]}"
-    else:
-        return f"Контакт {name} не найден."
-
-
-# Функция-обработчик для команды "show all"
-@input_error
-def show_all():
-    if phonebook:
-        # Выводим список всех контактов
-        result = "Контакты:\n"
-        for name, phone in phonebook.items():
-            result += f"{name}: {phone}\n"
-        return result.strip()
-    else:
-        return "Телефонная книга пуста."
 
 
 # Главная функция, в которой происходит взаимодействие с пользователем
@@ -80,26 +71,26 @@ def main():
         else:
             handler = None
             if user_input == "hello":
-                handler = handle_command("hello")(hello)
+                handler = hello
             elif user_input.startswith("add "):
                 _, contact_info = user_input.split(" ", 1)
                 try:
                     name, phone = contact_info.split()
-                    handler = handle_command("add")(add_contact)
+                    handler = add_contact(name, phone)
                 except ValueError:
                     print("Укажите имя и номер телефона, пожалуйста")
             elif user_input.startswith("change "):
                 _, contact_info = user_input.split(" ", 1)
                 try:
                     name, phone = contact_info.split()
-                    handler = handle_command("change")(change_contact)
+                    handler = change_contact(name, phone)
                 except ValueError:
                     print("Укажите имя и номер телефона, пожалуйста")
             elif user_input.startswith("phone "):
                 _, name = user_input.split(" ", 1)
-                handler = handle_command("phone")(find_phone)
+                handler = find_phone(name)
             elif user_input == "show all":
-                handler = handle_command("show all")(show_all)
+                handler = show_all
 
             if handler is not None:
                 result = handler()
