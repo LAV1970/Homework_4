@@ -85,7 +85,9 @@ def main():
         elif user_input == "show all":
             print(show_all())
         else:
-            print("Invalid command. Type 'good bye', 'close', or 'exit' to exit.")
+            print(
+                "Invalid command. Type 'good bye', 'close', 'exit', 'hello', or 'add ...' to interact with the bot."
+            )
 
 
 if __name__ == "__main__":
