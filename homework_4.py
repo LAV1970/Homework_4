@@ -4,6 +4,18 @@ import re
 phonebook = {}
 
 
+# Собственное исключение для неверного формата номера телефона
+class InvalidPhoneNumberError(Exception):
+    pass
+
+
+# Функция для проверки формата номера телефона
+def validate_phone(phone):
+    pattern = r"^\+380\(\d{2}\)\d{3}-(?:\d-\d{3}|\d{2}-\d{2})$"
+    if not re.match(pattern, phone):
+        raise InvalidPhoneNumberError()
+
+
 # Создаем декоратор input_error для обработки ошибок
 def input_error(func):
     def wrapper(*args, **kwargs):
@@ -21,41 +33,50 @@ def input_error(func):
     return wrapper
 
 
-# Собственное исключение для неверного формата номера телефона
-class InvalidPhoneNumberError(Exception):
-    pass
-
-
-# Функция для проверки формата номера телефона
-def validate_phone(phone):
-    pattern = r"^\+380\(\d{2}\)\d{3}-(?:\d-\d{3}|\d{2}-\d{2})$"
-    if not re.match(pattern, phone):
-        raise InvalidPhoneNumberError()
-
-
 # Функция-обработчик для команды "add"
 @input_error
 def add_contact(name, phone):
-    try:
-        validate_phone(phone)
-        phonebook[name] = phone
-        return f"Контакт {name} с номером телефона {phone} добавлен."
-    except InvalidPhoneNumberError:
-        raise ValueError()
+    validate_phone(phone)
+    phonebook[name] = phone
+    return f"Контакт {name} с номером телефона {phone} добавлен."
 
 
 # Функция-обработчик для команды "change"
 @input_error
 def change_contact(name, phone):
     if name in phonebook:
-        try:
-            validate_phone(phone)
-            phonebook[name] = phone
-            return f"Номер телефона для {name} обновлен."
-        except InvalidPhoneNumberError:
-            raise ValueError()
+        validate_phone(phone)
+        phonebook[name] = phone
+        return f"Номер телефона для {name} обновлен."
     else:
         return f"Контакт {name} не найден."
+
+
+# Функция-обработчик для команды "hello"
+@input_error
+def hello():
+    return "Как я могу вам помочь?"
+
+
+# Функция-обработчик для команды "phone"
+@input_error
+def find_phone(name):
+    if name in phonebook:
+        return f"Номер телефона для {name}: {phonebook[name]}"
+    else:
+        return f"Контакт {name} не найден."
+
+
+# Функция-обработчик для команды "show all"
+@input_error
+def show_all():
+    if phonebook:
+        result = "Контакты:\n"
+        for name, phone in phonebook.items():
+            result += f"{name}: {phone}\n"
+        return result.strip()
+    else:
+        return "Телефонная книга пуста."
 
 
 # Главная функция, в которой происходит взаимодействие с пользователем
