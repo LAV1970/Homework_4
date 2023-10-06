@@ -79,6 +79,45 @@ def show_all():
         return "Телефонная книга пуста."
 
 
+# Функция для обработки команды "add"
+def handle_add_command(contact_info):
+    try:
+        name, phone = contact_info.split()
+        return add_contact(name, phone)
+    except ValueError:
+        return "Укажите имя и номер телефона, пожалуйста"
+
+
+# Функция для обработки команды "change"
+def handle_change_command(contact_info):
+    try:
+        name, phone = contact_info.split()
+        return change_contact(name, phone)
+    except ValueError:
+        return "Укажите имя и номер телефона, пожалуйста"
+
+
+# Функция для обработки команд пользователя
+def handle_user_input(user_input):
+    handlers = {
+        "hello": hello,
+        "add": handle_add_command,
+        "change": handle_change_command,
+        "phone": find_phone,
+        "show all": show_all,
+    }
+
+    command_parts = user_input.split(" ", 1)
+    command = command_parts[0]
+    args = command_parts[1] if len(command_parts) > 1 else ""
+
+    handler = handlers.get(command)
+    if handler:
+        return handler(args)
+    else:
+        return "Неверная команда. Введите 'good bye', 'close', 'exit', 'hello' или 'add ...' для взаимодействия с ботом."
+
+
 # Главная функция, в которой происходит взаимодействие с пользователем
 def main():
     print("Бот-ассистент. Введите 'good bye', 'close' или 'exit' для выхода.")
@@ -90,37 +129,8 @@ def main():
             print("До свидания!")
             break
         else:
-            handler = None
-            if user_input == "hello":
-                handler = hello
-            elif user_input.startswith("add "):
-                _, contact_info = user_input.split(" ", 1)
-                try:
-                    name, phone = contact_info.split()
-                    handler = add_contact(name, phone)
-                except ValueError:
-                    print("Укажите имя и номер телефона, пожалуйста")
-            elif user_input.startswith("change "):
-                _, contact_info = user_input.split(" ", 1)
-                try:
-                    name, phone = contact_info.split()
-                    handler = change_contact(name, phone)
-                except ValueError:
-                    print("Укажите имя и номер телефона, пожалуйста")
-            elif user_input.startswith("phone "):
-                _, name = user_input.split(" ", 1)
-                handler = find_phone(name)
-            elif user_input == "show all":
-                handler = show_all
-
-            if handler is not None:
-                result = handler()
-                if result:
-                    print(result)
-                else:
-                    print(
-                        "Неверная команда. Введите 'good bye', 'close', 'exit', 'hello' или 'add ...' для взаимодействия с ботом."
-                    )
+            result = handle_user_input(user_input)
+            print(result)
 
 
 if __name__ == "__main__":
